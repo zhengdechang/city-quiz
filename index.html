@@ -3,140 +3,180 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f4ecdf">
+<meta name="theme-color" content="#f6eedf">
 <title>测测你适合去哪个城市生活</title>
+<link rel="preload" href="fonts/kuaile.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/wenkai.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="art/cover.webp" as="image">
 <style>
-  :root { --ink: #2b2420; --sub: #7a6d62; --paper: #f4ecdf; --card: #fffaf2; --line: #e6dccb; --accent: #c4552f; }
+  @font-face { font-family: KuaiLe; src: url(fonts/kuaile.woff2) format('woff2'); font-display: swap; }
+  @font-face { font-family: WenKai; src: url(fonts/wenkai.woff2) format('woff2'); font-display: swap; }
+  :root { --ink: #3b302a; --sub: #8a7a6c; --paper: #f6eedf; --card: #fffbf3; --pencil: #5a4a3f; --accent: #e0714f; --hl: #ffd98a; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; height: 100%; }
-  body { background: var(--paper); color: var(--ink); font-family: -apple-system, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
-         background-image: radial-gradient(#e9dfcd 1px, transparent 1px); background-size: 18px 18px; }
-  .wrap { max-width: 460px; margin: 0 auto; min-height: 100%; padding: calc(20px + env(safe-area-inset-top)) 22px calc(28px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
-  .screen { display: none; flex: 1; flex-direction: column; animation: in .35s ease; }
+  html, body { margin: 0; min-height: 100%; }
+  body { color: var(--ink); font-family: WenKai, "PingFang SC", "Noto Sans CJK SC", sans-serif; background: var(--paper) url(art/paper.webp) center / 600px; }
+  .wrap { max-width: 460px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; padding: calc(16px + env(safe-area-inset-top)) 22px calc(26px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
+  .screen { display: none; flex: 1; flex-direction: column; animation: in .4s ease; }
   .screen.on { display: flex; }
-  @keyframes in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-  button { font: inherit; border: 0; cursor: pointer; }
-  .btn { background: var(--ink); color: #fff; border-radius: 999px; padding: 16px; font-size: 17px; font-weight: 600; width: 100%; letter-spacing: 2px; }
-  .btn:active { transform: scale(.98); }
-  .btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+  @keyframes in { from { opacity: 0; transform: translateY(10px) rotate(-.4deg); } to { opacity: 1; transform: none; } }
+  h1, h2, h3, .hand { font-family: KuaiLe, WenKai, sans-serif; font-weight: 400; }
+  button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+
+  /* 手绘描边：不规则圆角 + 铅笔色描边 + 错位阴影 */
+  .sketch { border: 2.5px solid var(--pencil); border-radius: 255px 18px 225px 16px / 16px 225px 18px 255px; }
+  .btn { font-family: KuaiLe, sans-serif; font-size: 22px; letter-spacing: 3px; padding: 13px 0 12px; width: 100%; background: var(--accent); color: #fff;
+         border: 2.5px solid var(--pencil); border-radius: 18px 225px 16px 255px / 255px 16px 225px 18px; box-shadow: 4px 5px 0 var(--pencil); transition: transform .1s, box-shadow .1s; }
+  .btn:active { transform: translate(3px, 4px); box-shadow: 1px 1px 0 var(--pencil); }
+  .btn.ghost { background: var(--card); color: var(--ink); }
+  .hl { background: linear-gradient(transparent 58%, var(--hl) 58%, var(--hl) 88%, transparent 88%); padding: 0 2px; }
+
+  /* 胶带 */
+  .tape { position: absolute; width: 96px; height: 26px; background: rgba(255, 214, 140, .72); top: -12px; left: 50%; transform: translateX(-50%) rotate(-3deg);
+          box-shadow: 0 1px 2px rgba(0,0,0,.08); clip-path: polygon(3% 0, 97% 4%, 100% 100%, 0 96%); }
+  .tape.b { background: rgba(160, 205, 220, .7); transform: translateX(-50%) rotate(4deg); }
 
   /* 封面 */
-  .stamp { align-self: flex-start; border: 1.5px dashed var(--accent); color: var(--accent); border-radius: 6px; padding: 4px 10px; font-size: 12px; letter-spacing: 3px; transform: rotate(-4deg); margin-top: 10px; }
-  .cover h1 { font-size: 40px; line-height: 1.2; margin: 26px 0 12px; letter-spacing: 1px; }
-  .cover h1 em { font-style: normal; color: var(--accent); }
-  .cover p { color: var(--sub); line-height: 1.7; margin: 0 0 22px; font-size: 15px; }
-  .tickets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 6px 0 28px; }
-  .tk { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 0 8px; text-align: center; font-size: 15px; font-weight: 600; position: relative; }
-  .tk small { display: block; font-size: 8px; color: var(--sub); letter-spacing: 1px; font-weight: 400; margin-top: 2px; }
-  .tk::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; border-radius: 8px 8px 0 0; background: var(--c); }
-  .meta { display: flex; justify-content: center; gap: 18px; color: var(--sub); font-size: 13px; margin-bottom: 16px; }
-  .spacer { flex: 1; }
+  .cover h1 { font-size: 46px; line-height: 1.18; margin: 18px 0 8px; letter-spacing: 1px; }
+  .cover h1 .red { color: var(--accent); position: relative; }
+  .cover h1 .red svg { position: absolute; left: -4px; right: -4px; bottom: -10px; width: calc(100% + 8px); height: 16px; }
+  .cover .lead { color: var(--sub); line-height: 1.75; margin: 6px 0 0; font-size: 16px; }
+  .badge { align-self: flex-start; font-family: KuaiLe; font-size: 15px; color: var(--accent); border: 2px dashed var(--accent); border-radius: 14px 4px 12px 5px; padding: 3px 12px; transform: rotate(-4deg); margin-top: 8px; }
+  .hero { position: relative; margin: 22px -6px 0; background: var(--card); padding: 10px 10px 8px; box-shadow: 0 6px 18px rgba(90, 70, 50, .14); transform: rotate(-1.2deg); }
+  .hero img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
+  .hero .cap { text-align: center; font-family: KuaiLe; font-size: 15px; color: var(--sub); padding-top: 6px; }
+  .meta { display: flex; justify-content: center; gap: 22px; color: var(--sub); font-size: 15px; margin: 22px 0 14px; }
+  .spacer { flex: 1; min-height: 12px; }
 
   /* 答题 */
-  .top { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
-  .back { background: none; color: var(--sub); font-size: 22px; width: 32px; height: 32px; padding: 0; }
+  .top { display: flex; align-items: center; gap: 10px; margin: 4px 0 24px; }
+  .back { font-family: KuaiLe; font-size: 16px; color: var(--sub); padding: 4px 2px; width: 64px; text-align: left; white-space: nowrap; }
   .back[hidden] { visibility: hidden; display: block; }
-  .bar { flex: 1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
-  .bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width .3s; }
-  .num { font-size: 13px; color: var(--sub); width: 42px; text-align: right; font-variant-numeric: tabular-nums; }
-  .qn { color: var(--accent); font-size: 13px; letter-spacing: 3px; margin-bottom: 10px; }
-  .qt { font-size: 24px; font-weight: 700; line-height: 1.45; margin: 0 0 28px; }
-  .opts { display: flex; flex-direction: column; gap: 12px; }
-  .opt { background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 17px 18px; text-align: left; font-size: 16px; color: var(--ink); display: flex; gap: 12px; align-items: center; transition: border-color .15s, background .15s; }
-  .opt b { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--line); display: grid; place-items: center; font-size: 13px; color: var(--sub); }
-  .opt.sel { border-color: var(--ink); background: #fff; }
-  .opt.sel b { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .route { flex: 1; position: relative; height: 30px; }
+  .route > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .route .plane svg { display: block; width: 100%; height: 100%; }
+  .route .plane { position: absolute; top: -2px; width: 30px; height: 30px; transition: left .45s cubic-bezier(.5, 1.6, .5, 1); transform: translateX(-50%); }
+  .num { font-family: KuaiLe; font-size: 17px; color: var(--sub); width: 46px; text-align: right; }
+  .qcard { position: relative; background: var(--card); padding: 26px 20px 22px; margin-bottom: 22px; box-shadow: 0 5px 16px rgba(90, 70, 50, .1); }
+  .qn { font-family: KuaiLe; color: var(--accent); font-size: 17px; letter-spacing: 2px; margin-bottom: 8px; }
+  .qt { font-size: 25px; line-height: 1.5; margin: 0; }
+  .opts { display: flex; flex-direction: column; gap: 13px; }
+  .opt { background: var(--card); padding: 15px 16px; text-align: left; font-size: 17px; display: flex; gap: 12px; align-items: center; line-height: 1.45;
+         box-shadow: 3px 3px 0 rgba(90, 74, 63, .25); transition: transform .15s, background .15s; }
+  .opt:nth-child(2n) { border-radius: 16px 225px 18px 255px / 255px 18px 225px 16px; }
+  .opt b { flex: none; width: 30px; height: 30px; display: grid; place-items: center; font-family: KuaiLe; font-weight: 400; font-size: 17px; color: var(--pencil);
+           border: 2px solid var(--pencil); border-radius: 50% 45% 52% 48% / 48% 52% 45% 50%; }
+  .opt.sel { background: #fff3d6; transform: rotate(-.8deg) scale(1.01); }
+  .opt.sel b { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-  /* 计算中 */
-  .loading { align-items: center; justify-content: center; text-align: center; color: var(--sub); }
-  .plane { font-size: 44px; animation: fly 1.2s ease-in-out infinite; }
-  @keyframes fly { 50% { transform: translate(14px, -10px) rotate(8deg); } }
+  /* 加载 */
+  .loading { align-items: center; justify-content: center; text-align: center; }
+  .loading .fly { width: 110px; animation: fly 1.4s ease-in-out infinite; }
+  .loading p { font-family: KuaiLe; font-size: 22px; color: var(--sub); }
+  @keyframes fly { 50% { transform: translate(18px, -14px) rotate(6deg); } }
 
-  /* 结果 */
-  .pc { background: var(--card); border-radius: 18px; overflow: hidden; box-shadow: 0 10px 30px rgba(80, 60, 40, .12); }
-  .pc-hd { background: var(--c); color: #fff; padding: 22px 22px 20px; position: relative; overflow: hidden; }
-  .pc-hd .lbl { font-size: 12px; letter-spacing: 3px; opacity: .85; }
-  .pc-hd h2 { font-size: 52px; margin: 6px 0 2px; letter-spacing: 6px; line-height: 1.1; }
-  .pc-hd .en { font-size: 13px; letter-spacing: 6px; opacity: .8; }
-  .pc-hd .match { position: absolute; right: 18px; top: 20px; width: 78px; height: 78px; border: 2px solid rgba(255,255,255,.75); border-radius: 50%; display: grid; place-items: center; text-align: center; transform: rotate(8deg); font-size: 11px; line-height: 1.2; }
-  .pc-hd .match strong { display: block; font-size: 24px; }
-  .pc-bd { padding: 20px 22px 22px; }
-  .tag { font-size: 19px; font-weight: 700; margin: 0 0 10px; }
-  .desc { color: #4d433b; line-height: 1.75; font-size: 15px; margin: 0 0 18px; }
-  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
-  .col h4 { margin: 0 0 6px; font-size: 13px; color: var(--sub); font-weight: 600; }
-  .col ul { margin: 0; padding-left: 16px; font-size: 13.5px; line-height: 1.7; }
-  .sec { font-size: 13px; color: var(--sub); font-weight: 600; margin: 4px 0 8px; }
-  .dims { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
-  .dims span { font-size: 12.5px; padding: 4px 10px; border-radius: 999px; background: #f1e8da; }
-  .runner { display: flex; flex-direction: column; gap: 8px; }
-  .rr { display: flex; align-items: center; gap: 10px; font-size: 14px; }
-  .rr .n { width: 52px; font-weight: 600; }
-  .rr .b { flex: 1; height: 8px; background: #efe6d8; border-radius: 4px; overflow: hidden; }
-  .rr .b i { display: block; height: 100%; border-radius: 4px; background: var(--c); }
-  .rr .p { width: 38px; text-align: right; color: var(--sub); font-variant-numeric: tabular-nums; }
-  .acts { display: grid; gap: 10px; margin-top: 20px; }
-  .note { text-align: center; font-size: 12px; color: var(--sub); margin-top: 14px; }
+  /* 结果：明信片 */
+  .post { position: relative; background: var(--card); padding: 12px 12px 18px; box-shadow: 0 8px 22px rgba(90, 70, 50, .16); transform: rotate(.6deg); margin-top: 10px; }
+  .post .pic { position: relative; }
+  .post .pic img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; background: #efe5d3; }
+  .stamp { position: absolute; right: 6px; bottom: -34px; width: 92px; height: 92px; border-radius: 50%; border: 2.5px dashed var(--c); color: var(--c); background: rgba(255, 251, 243, .92);
+           display: grid; place-items: center; text-align: center; transform: rotate(12deg); font-family: KuaiLe; line-height: 1.05; }
+  .stamp small { display: block; font-size: 13px; }
+  .stamp strong { display: block; font-size: 27px; font-weight: 400; }
+  .post .who { padding: 14px 8px 0; }
+  .post .lbl { font-size: 15px; color: var(--sub); }
+  .post h2 { font-size: 58px; margin: 2px 0 0; color: var(--c); letter-spacing: 6px; line-height: 1.1; }
+  .post .en { font-family: KuaiLe; font-size: 14px; letter-spacing: 5px; color: var(--sub); }
+  .tag { font-family: KuaiLe; font-size: 22px; margin: 16px 8px 8px; line-height: 1.45; }
+  .desc { line-height: 1.85; font-size: 16px; margin: 0 8px 4px; color: #4b3f37; }
+  .note-box { position: relative; background: #fffdf8; margin: 22px 4px 0; padding: 18px 16px 14px; box-shadow: 0 3px 10px rgba(90, 70, 50, .08); }
+  .note-box h3 { margin: 0 0 8px; font-size: 19px; }
+  .note-box ul { margin: 0; padding: 0; list-style: none; }
+  .note-box li { padding: 3px 0 3px 26px; position: relative; font-size: 16px; line-height: 1.6; }
+  .note-box li::before { position: absolute; left: 0; top: 2px; font-family: KuaiLe; font-size: 17px; }
+  .love li::before { content: '♥'; color: var(--accent); }
+  .hard li::before { content: '~'; color: var(--sub); font-size: 22px; top: -2px; }
+  .lined { background-image: repeating-linear-gradient(transparent 0 31px, rgba(140, 170, 200, .25) 31px 32px); background-position: 0 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips span { font-size: 15px; padding: 3px 12px; border: 2px solid var(--pencil); border-radius: 14px 4px 13px 5px / 5px 13px 4px 14px; background: #fff; }
+  .chips span:nth-child(2) { transform: rotate(-2deg); background: #fff3d6; }
+  .chips span:nth-child(3) { transform: rotate(1.5deg); background: #e8f2ea; }
+  .rr { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+  .rr img { width: 64px; height: 44px; object-fit: cover; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.18); transform: rotate(-3deg); }
+  .rr:nth-child(2n) img { transform: rotate(3deg); }
+  .rr .n { font-family: KuaiLe; font-size: 19px; width: 56px; }
+  .rr .bar { flex: 1; height: 12px; border: 2px solid var(--pencil); border-radius: 8px 3px 7px 4px; overflow: hidden; background: #fff; }
+  .rr .bar i { display: block; height: 100%; background: repeating-linear-gradient(-45deg, var(--c) 0 5px, transparent 5px 8px); }
+  .rr .p { font-family: KuaiLe; font-size: 17px; width: 42px; text-align: right; color: var(--sub); }
+  .acts { display: grid; gap: 14px; margin-top: 26px; }
+  .foot { text-align: center; font-size: 13px; color: var(--sub); margin-top: 16px; }
 
-  /* 海报 */
-  .mask { position: fixed; inset: 0; background: rgba(30, 24, 20, .82); display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px; z-index: 9; }
+  /* 海报弹层 */
+  .mask { position: fixed; inset: 0; background: rgba(40, 32, 26, .84); display: none; flex-direction: column; align-items: center; justify-content: center; padding: 22px; z-index: 9; }
   .mask.on { display: flex; }
-  .mask img { max-width: 100%; max-height: 74vh; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
-  .mask p { color: #fff; font-size: 14px; margin: 14px 0 10px; }
-  .mask button { background: rgba(255,255,255,.15); color: #fff; border-radius: 999px; padding: 10px 28px; }
+  .mask img { max-width: 100%; max-height: 76vh; box-shadow: 0 10px 40px rgba(0,0,0,.45); }
+  .mask p { color: #fff; font-family: KuaiLe; font-size: 18px; margin: 14px 0 10px; }
+  .mask button { color: #fff; border: 2px solid #fff; border-radius: 16px 6px 14px 5px; padding: 6px 26px; font-family: KuaiLe; font-size: 17px; }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-plane" viewBox="0 0 64 64"><path d="M6 30 L58 8 L44 56 L32 40 Z" fill="#fffbf3" stroke="#5a4a3f" stroke-width="3.5" stroke-linejoin="round"/><path d="M58 8 L32 40 L30 54 L24 37" fill="#cfe1ec" stroke="#5a4a3f" stroke-width="3.5" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
 <div class="wrap">
   <section class="screen cover on" id="s-cover">
-    <div class="stamp">CITY · TEST</div>
-    <h1>测测你适合<br>去<em>哪个城市</em>生活</h1>
-    <p>12 道生活小问题，从节奏、气候、口味到理想的家，帮你找到最合拍的那座城。</p>
-    <div class="tickets" id="tickets"></div>
+    <div class="badge">城市性格小测试</div>
+    <h1>测测你适合<br>去<span class="red">哪个城市<svg viewBox="0 0 200 16" preserveAspectRatio="none"><path d="M3 10 C 40 3, 80 14, 120 7 S 180 4, 197 9" stroke="#e0714f" stroke-width="4" fill="none" stroke-linecap="round"/></svg></span>生活</h1>
+    <p class="lead">12 个关于生活的小问题，<br>帮你找到最合拍的那座城 ✿</p>
+    <div class="hero"><div class="tape"></div><img src="art/cover.webp" alt="手绘中国旅行地图"><div class="cap">12 座城市，总有一座在等你</div></div>
     <div class="spacer"></div>
-    <div class="meta"><span>⏱ 约 1 分钟</span><span>📮 12 座城市</span></div>
-    <button class="btn" id="start">开始测试</button>
+    <div class="meta"><span>✎ 约 1 分钟</span><span>✈ 12 座城市</span></div>
+    <button class="btn" id="start">出 发 ！</button>
   </section>
 
   <section class="screen" id="s-quiz">
     <div class="top">
-      <button class="back" id="back" aria-label="上一题">‹</button>
-      <div class="bar"><i id="bar"></i></div>
+      <button class="back" id="back">‹ 上一题</button>
+      <div class="route">
+        <svg viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M2 20 Q 25 6, 50 18 T 98 14" stroke="#b9a896" stroke-width="2" stroke-dasharray="4 4" fill="none" vector-effect="non-scaling-stroke"/></svg>
+        <div class="plane" id="plane"><svg viewBox="0 0 64 64"><use href="#i-plane"/></svg></div>
+      </div>
       <div class="num" id="num"></div>
     </div>
-    <div class="qn" id="qn"></div>
-    <h2 class="qt" id="qt"></h2>
+    <div class="qcard sketch"><div class="tape b"></div><div class="qn" id="qn"></div><h2 class="qt" id="qt"></h2></div>
     <div class="opts" id="opts"></div>
   </section>
 
   <section class="screen loading" id="s-load">
-    <div class="plane">✈️</div>
-    <p>正在为你匹配城市…</p>
+    <svg class="fly" viewBox="0 0 64 64"><use href="#i-plane"/></svg>
+    <p>正在帮你挑选城市……</p>
   </section>
 
   <section class="screen" id="s-result">
-    <div class="pc" id="pc"></div>
+    <div id="res"></div>
     <div class="acts">
-      <button class="btn" id="poster">生成分享海报</button>
+      <button class="btn" id="poster">生成我的城市明信片</button>
       <button class="btn ghost" id="again">再测一次</button>
     </div>
-    <div class="note">结果仅供娱乐，城市描述基于大众印象</div>
+    <div class="foot">结果仅供娱乐 · 城市描述基于大众印象</div>
   </section>
 </div>
 
 <div class="mask" id="mask">
-  <img id="pimg" alt="分享海报">
-  <p>长按图片保存，分享给朋友</p>
+  <img id="pimg" alt="分享明信片">
+  <p>长按图片保存，发给朋友看看 ✿</p>
   <button id="close">关闭</button>
 </div>
 
 <script src="data.js"></script>
 <script>
 const $ = id => document.getElementById(id);
+const ART = { 北京: 'beijing', 上海: 'shanghai', 深圳: 'shenzhen', 广州: 'guangzhou', 杭州: 'hangzhou', 成都: 'chengdu',
+  重庆: 'chongqing', 厦门: 'xiamen', 大理: 'dali', 西安: 'xian', 南京: 'nanjing', 哈尔滨: 'harbin' };
+const art = c => `art/${ART[c.name]}.webp`;
 const answers = [];
 let cur = 0, result = null;
-
-$('tickets').innerHTML = CITIES.map(c => `<div class="tk" style="--c:${c.color}">${c.name}<small>${c.en}</small></div>`).join('');
 
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
@@ -145,14 +185,13 @@ function show(id) {
 
 function renderQ() {
   const Q = QUESTIONS[cur];
-  $('bar').style.width = (cur / QUESTIONS.length * 100) + '%';
+  $('plane').style.left = (4 + cur / (QUESTIONS.length - 1) * 92) + '%';
   $('num').textContent = `${cur + 1}/${QUESTIONS.length}`;
-  $('qn').textContent = `第 ${cur + 1} 题`;
-  $('qt').textContent = Q.q;
+  $('qn').textContent = `第 ${cur + 1} 站`;
+  $('qt').innerHTML = Q.q.replace(/(.)([？?！])$/, '<span style="white-space:nowrap">$1$2</span>');
   $('back').hidden = cur === 0;
   $('opts').innerHTML = Q.o.map((o, i) =>
-    `<button class="opt${answers[cur] === i ? ' sel' : ''}" data-i="${i}"><b>${'ABCD'[i]}</b><span>${o[0]}</span></button>`).join('');
-  // 重新播放进场动画
+    `<button class="opt sketch${answers[cur] === i ? ' sel' : ''}" data-i="${i}"><b>${'ABCD'[i]}</b><span>${o[0]}</span></button>`).join('');
   const s = $('s-quiz'); s.style.animation = 'none'; s.offsetHeight; s.style.animation = '';
 }
 
@@ -166,17 +205,19 @@ $('opts').addEventListener('click', e => {
     busy = false;
     if (cur < QUESTIONS.length - 1) { cur++; renderQ(); }
     else finish();
-  }, 260);
+  }, 280);
 });
 $('back').onclick = () => { if (cur > 0) { cur--; renderQ(); } };
 $('start').onclick = () => { answers.length = 0; cur = 0; renderQ(); show('s-quiz'); };
 $('again').onclick = () => show('s-cover');
 
 function finish() {
-  $('bar').style.width = '100%';
   show('s-load');
   result = rank(answers);
-  setTimeout(() => { renderResult(); show('s-result'); }, 1300);
+  const img = new Image(); img.src = art(result.list[0].city);   // 等主图下好再翻页，最多等 2.5 秒
+  Promise.race([new Promise(r => { img.onload = img.onerror = r; }), new Promise(r => setTimeout(r, 2500))])
+    .then(() => new Promise(r => setTimeout(r, 900)))
+    .then(() => { renderResult(); show('s-result'); });
 }
 
 function topDims(u) {
@@ -186,29 +227,26 @@ function topDims(u) {
 function renderResult() {
   const [best, ...rest] = result.list, c = best.city;
   const dims = topDims(result.user);
-  $('pc').innerHTML = `
-    <div class="pc-hd" style="--c:${c.color}">
-      <div class="lbl">你最适合生活的城市</div>
-      <h2>${c.name}</h2><div class="en">${c.en}</div>
-      <div class="match">契合度<strong>${best.pct}%</strong></div>
-    </div>
-    <div class="pc-bd">
-      <p class="tag">「${c.tag}」</p>
+  $('res').innerHTML = `
+    <div class="post" style="--c:${c.color}">
+      <div class="tape"></div>
+      <div class="pic"><img src="${art(c)}" alt="${c.name}手绘插画">
+        <div class="stamp"><div><small>契合度</small><strong>${best.pct}%</strong></div></div></div>
+      <div class="who"><div class="lbl">你最适合生活的城市是</div><h2>${c.name}</h2><div class="en">${c.en}</div></div>
+      <p class="tag"><span class="hl">「${c.tag.slice(0, -2)}<span style="white-space:nowrap">${c.tag.slice(-2)}」</span></span></p>
       <p class="desc">${c.desc}</p>
-      <div class="cols">
-        <div class="col"><h4>😍 你会爱上</h4><ul>${c.like.map(x => `<li>${x}</li>`).join('')}</ul></div>
-        <div class="col"><h4>😮‍💨 需要适应</h4><ul>${c.hard.map(x => `<li>${x}</li>`).join('')}</ul></div>
-      </div>
-      ${dims.length ? `<div class="sec">你最看重</div><div class="dims">${dims.map(d => `<span>${d}</span>`).join('')}</div>` : ''}
-      <div class="sec">其他也很合拍的城市</div>
-      <div class="runner">${rest.slice(0, 3).map(r => `
-        <div class="rr" style="--c:${r.city.color}"><span class="n">${r.city.name}</span><span class="b"><i style="width:${r.pct}%"></i></span><span class="p">${r.pct}%</span></div>`).join('')}
-      </div>
+    </div>
+    <div class="note-box sketch lined love"><div class="tape b"></div><h3>你会爱上</h3><ul>${c.like.map(x => `<li>${x}</li>`).join('')}</ul></div>
+    <div class="note-box sketch lined hard"><h3>需要适应</h3><ul>${c.hard.map(x => `<li>${x}</li>`).join('')}</ul></div>
+    ${dims.length ? `<div class="note-box sketch"><h3>你最看重的是</h3><div class="chips">${dims.map(d => `<span>${d}</span>`).join('')}</div></div>` : ''}
+    <div class="note-box sketch"><div class="tape"></div><h3>这几座城也很合拍</h3>
+      ${rest.slice(0, 3).map(r => `<div class="rr" style="--c:${r.city.color}"><img src="${art(r.city)}" alt="" loading="lazy">
+        <span class="n">${r.city.name}</span><span class="bar"><i style="width:${r.pct}%"></i></span><span class="p">${r.pct}%</span></div>`).join('')}
     </div>`;
 }
 
-// 分享海报：canvas 画好转成图片，手机上长按保存
-const NO_HEAD = '，。、；：？！」』）》…%';   // 不能出现在行首的标点
+// ———— 分享明信片：canvas 画好转图片，手机长按保存 ————
+const NO_HEAD = '，。、；：？！」』）》…%';
 function wrapText(ctx, text, x, y, maxW, lh, draw) {
   let line = '';
   for (const ch of text) {
@@ -217,59 +255,78 @@ function wrapText(ctx, text, x, y, maxW, lh, draw) {
   }
   draw && ctx.fillText(line, x, y); return y + lh;
 }
-// 画两遍：第一遍只量高度，第二遍按实际高度出图
-function paintPoster(x, W, H, draw) {
+function loadImg(src) { return new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = src; }); }
+
+function paintPoster(x, W, H, pic, paper, draw) {
   const [best, ...rest] = result.list, c = best.city;
-  const F = 'PingFang SC, Noto Sans CJK SC, Microsoft YaHei, sans-serif';
-  const px = 50, py = 60, pw = W - 100, ph = H - 220;
+  const KL = 'KuaiLe, sans-serif', WK = 'WenKai, sans-serif';
+  const px = 46, py = 56, pw = W - 92;
   if (draw) {
-    x.fillStyle = '#f4ecdf'; x.fillRect(0, 0, W, H);
-    x.fillStyle = '#e6dccb';
-    for (let i = 9; i < W; i += 27) for (let j = 9; j < H; j += 27) x.fillRect(i, j, 1.5, 1.5);
-    x.save(); x.shadowColor = 'rgba(80,60,40,.18)'; x.shadowBlur = 30; x.shadowOffsetY = 10;
-    x.fillStyle = '#fffaf2'; x.beginPath(); x.roundRect(px, py, pw, ph, 28); x.fill(); x.restore();
-    x.save(); x.beginPath(); x.roundRect(px, py, pw, ph, 28); x.clip();
-    x.fillStyle = c.color; x.fillRect(px, py, pw, 330); x.restore();
-    x.fillStyle = 'rgba(255,255,255,.85)'; x.font = `22px ${F}`; x.fillText('你最适合生活的城市', px + 40, py + 70);
-    x.fillStyle = '#fff'; x.font = `bold 108px ${F}`; x.fillText(c.name, px + 36, py + 200);
-    x.font = `24px ${F}`; x.fillStyle = 'rgba(255,255,255,.8)'; x.fillText(c.en.split('').join(' '), px + 42, py + 260);
-    const cx = px + pw - 110, cy = py + 120;   // 邮戳
-    x.save(); x.translate(cx, cy); x.rotate(.14);
-    x.strokeStyle = 'rgba(255,255,255,.8)'; x.lineWidth = 3; x.beginPath(); x.arc(0, 0, 70, 0, 7); x.stroke();
-    x.fillStyle = '#fff'; x.textAlign = 'center'; x.font = `20px ${F}`; x.fillText('契合度', 0, -14);
-    x.font = `bold 44px ${F}`; x.fillText(best.pct + '%', 0, 36); x.restore();
+    if (paper) { x.fillStyle = x.createPattern(paper, 'repeat'); x.fillRect(0, 0, W, H); } else { x.fillStyle = '#f6eedf'; x.fillRect(0, 0, W, H); }
+    x.save(); x.translate(W / 2, H / 2); x.rotate(-.008); x.translate(-W / 2, -H / 2);
+    x.shadowColor = 'rgba(90,70,50,.22)'; x.shadowBlur = 26; x.shadowOffsetY = 8;
+    x.fillStyle = '#fffbf3'; x.fillRect(px, py, pw, H - py - 170); x.restore();
+    const iw = pw - 36, ih = iw * 2 / 3;
+    if (pic) x.drawImage(pic, px + 18, py + 18, iw, ih);
+    // 胶带
+    x.save(); x.translate(W / 2, py + 4); x.rotate(-.05); x.fillStyle = 'rgba(255,214,140,.75)'; x.fillRect(-80, -20, 160, 40); x.restore();
+    // 邮戳
+    x.save(); x.translate(px + pw - 100, py + ih + 10); x.rotate(.2);
+    x.fillStyle = 'rgba(255,251,243,.94)'; x.beginPath(); x.arc(0, 0, 74, 0, 7); x.fill();
+    x.strokeStyle = c.color; x.lineWidth = 4; x.setLineDash([10, 7]); x.beginPath(); x.arc(0, 0, 70, 0, 7); x.stroke(); x.setLineDash([]);
+    x.fillStyle = c.color; x.textAlign = 'center'; x.font = `22px ${KL}`; x.fillText('契合度', 0, -14);
+    x.font = `46px ${KL}`; x.fillText(best.pct + '%', 0, 34); x.restore();
+    x.fillStyle = '#8a7a6c'; x.font = `24px ${WK}`; x.fillText('你最适合生活的城市是', px + 36, py + ih + 74);
+    x.fillStyle = c.color; x.font = `100px ${KL}`; x.fillText(c.name, px + 30, py + ih + 182);
+    x.fillStyle = '#8a7a6c'; x.font = `22px ${KL}`; x.fillText(c.en.split('').join(' '), px + 38, py + ih + 222);
   }
-  x.fillStyle = '#2b2420'; x.font = `bold 34px ${F}`;
-  let y = wrapText(x, `「${c.tag}」`, px + 40, py + 400, pw - 80, 48, draw);
-  x.fillStyle = '#4d433b'; x.font = `26px ${F}`;
-  y = wrapText(x, c.desc, px + 40, y + 14, pw - 80, 44, draw);
-  const half = (pw - 80) / 2;
-  [['你会爱上', c.like, 0], ['需要适应', c.hard, half + 10]].forEach(([t, list, dx]) => {
-    let yy = y + 30;
-    if (draw) { x.fillStyle = '#7a6d62'; x.font = `bold 24px ${F}`; x.fillText(t, px + 40 + dx, yy); }
-    x.fillStyle = '#2b2420'; x.font = `22px ${F}`; yy += 42;
-    list.forEach(s => { yy = wrapText(x, '· ' + s, px + 40 + dx, yy, half - 14, 34, draw); });
-    y2 = Math.max(y2 || 0, yy);
+  const iw = pw - 36, ih = iw * 2 / 3;
+  let y = py + ih + 290;
+  x.font = `34px ${KL}`;
+  if (draw) {   // 荧光笔划线
+    const tw = Math.min(x.measureText(`「${c.tag}」`).width, pw - 72);
+    x.fillStyle = 'rgba(255,217,138,.85)'; x.fillRect(px + 30, y - 14, tw + 10, 18);
+  }
+  x.fillStyle = '#3b302a';
+  y = wrapText(x, `「${c.tag}」`, px + 34, y, pw - 72, 48, draw);
+  x.fillStyle = '#4b3f37'; x.font = `26px ${WK}`;
+  y = wrapText(x, c.desc, px + 36, y + 10, pw - 72, 44, draw);
+  // 两栏：你会爱上 / 需要适应
+  const colW = (pw - 72 - 24) / 2;
+  let yEnd = y;
+  [['你会爱上', c.like, 0, '♥'], ['需要适应', c.hard, colW + 24, '~']].forEach(([t, list, dx, mark]) => {
+    let yy = y + 26;
+    const bx = px + 34 + dx;
+    if (draw) { x.fillStyle = '#3b302a'; x.font = `26px ${KL}`; x.fillText(t, bx, yy); }
+    yy += 42; x.font = `22px ${WK}`;
+    list.forEach(s => {
+      if (draw) { x.fillStyle = mark === '♥' ? '#e0714f' : '#8a7a6c'; x.fillText(mark, bx, yy); }
+      x.fillStyle = '#3b302a'; yy = wrapText(x, s, bx + 26, yy, colW - 30, 34, draw);
+    });
+    yEnd = Math.max(yEnd, yy);
   });
-  y = y2; y2 = 0;
+  y = yEnd + 6;
   if (draw) {
-    x.strokeStyle = '#e6dccb'; x.setLineDash([8, 8]); x.lineWidth = 2;
-    x.beginPath(); x.moveTo(px + 40, y); x.lineTo(px + pw - 40, y); x.stroke(); x.setLineDash([]);
-    x.fillStyle = '#7a6d62'; x.font = `22px ${F}`;
-    x.fillText('也很合拍：' + rest.slice(0, 3).map(r => `${r.city.name} ${r.pct}%`).join('　'), px + 40, y + 48);
-    x.textAlign = 'center'; x.fillStyle = '#2b2420'; x.font = `bold 30px ${F}`;
-    x.fillText('测测你适合去哪个城市生活', W / 2, H - 92);
-    x.fillStyle = '#7a6d62'; x.font = `22px ${F}`; x.fillText(location.host + location.pathname, W / 2, H - 50);
+    x.strokeStyle = '#cdbfae'; x.setLineDash([9, 8]); x.lineWidth = 2;
+    x.beginPath(); x.moveTo(px + 34, y); x.lineTo(px + pw - 34, y); x.stroke(); x.setLineDash([]);
+    x.fillStyle = '#8a7a6c'; x.font = `23px ${WK}`;
+    x.fillText('也很合拍：' + rest.slice(0, 3).map(r => `${r.city.name} ${r.pct}%`).join('　'), px + 34, y + 46);
+    // 底部
+    x.textAlign = 'center'; x.fillStyle = '#3b302a'; x.font = `34px ${KL}`;
+    x.fillText('测测你适合去哪个城市生活', W / 2, H - 96);
+    x.fillStyle = '#8a7a6c'; x.font = `22px ${WK}`; x.fillText(location.host + location.pathname, W / 2, H - 52);
   }
-  return y + 80;   // 卡片内容底部
+  return y + 80;
 }
-let y2 = 0;
-$('poster').onclick = () => {
-  const W = 750, cv = document.createElement('canvas'), x = cv.getContext('2d');
-  const bottom = paintPoster(x, W, 0, false);
-  cv.width = W; cv.height = bottom + 160;
-  paintPoster(cv.getContext('2d'), W, cv.height, true);
-  $('pimg').src = cv.toDataURL('image/jpeg', .92);
+$('poster').onclick = async () => {
+  const c = result.list[0].city;
+  await Promise.all([document.fonts.load('40px KuaiLe'), document.fonts.load('26px WenKai')]);
+  const [pic, paper] = await Promise.all([loadImg(art(c)), loadImg('art/paper.webp')]);
+  const W = 750, cv = document.createElement('canvas');
+  const bottom = paintPoster(cv.getContext('2d'), W, 0, pic, paper, false);
+  cv.width = W; cv.height = bottom + 170;
+  paintPoster(cv.getContext('2d'), W, cv.height, pic, paper, true);
+  $('pimg').src = cv.toDataURL('image/jpeg', .9);
   $('mask').classList.add('on');
 };
 $('close').onclick = () => $('mask').classList.remove('on');
