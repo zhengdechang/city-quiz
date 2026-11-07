@@ -188,7 +188,7 @@ function renderQ() {
   $('plane').style.left = (4 + cur / (QUESTIONS.length - 1) * 92) + '%';
   $('num').textContent = `${cur + 1}/${QUESTIONS.length}`;
   $('qn').textContent = `第 ${cur + 1} 站`;
-  $('qt').innerHTML = Q.q.replace(/(.)([？?！])$/, '<span style="white-space:nowrap">$1$2</span>');
+  $('qt').innerHTML = Q.q.replace(/([^，、。]{1,3})([？?！])$/, '<span style="white-space:nowrap">$1$2</span>');
   $('back').hidden = cur === 0;
   $('opts').innerHTML = Q.o.map((o, i) =>
     `<button class="opt sketch${answers[cur] === i ? ' sel' : ''}" data-i="${i}"><b>${'ABCD'[i]}</b><span>${o[0]}</span></button>`).join('');
