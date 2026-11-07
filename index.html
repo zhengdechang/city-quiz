@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4ecdf">
+<title>测测你适合去哪个城市生活</title>
+<style>
+  :root { --ink: #2b2420; --sub: #7a6d62; --paper: #f4ecdf; --card: #fffaf2; --line: #e6dccb; --accent: #c4552f; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--paper); color: var(--ink); font-family: -apple-system, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+         background-image: radial-gradient(#e9dfcd 1px, transparent 1px); background-size: 18px 18px; }
+  .wrap { max-width: 460px; margin: 0 auto; min-height: 100%; padding: calc(20px + env(safe-area-inset-top)) 22px calc(28px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
+  .screen { display: none; flex: 1; flex-direction: column; animation: in .35s ease; }
+  .screen.on { display: flex; }
+  @keyframes in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  button { font: inherit; border: 0; cursor: pointer; }
+  .btn { background: var(--ink); color: #fff; border-radius: 999px; padding: 16px; font-size: 17px; font-weight: 600; width: 100%; letter-spacing: 2px; }
+  .btn:active { transform: scale(.98); }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+
+  /* 封面 */
+  .stamp { align-self: flex-start; border: 1.5px dashed var(--accent); color: var(--accent); border-radius: 6px; padding: 4px 10px; font-size: 12px; letter-spacing: 3px; transform: rotate(-4deg); margin-top: 10px; }
+  .cover h1 { font-size: 40px; line-height: 1.2; margin: 26px 0 12px; letter-spacing: 1px; }
+  .cover h1 em { font-style: normal; color: var(--accent); }
+  .cover p { color: var(--sub); line-height: 1.7; margin: 0 0 22px; font-size: 15px; }
+  .tickets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 6px 0 28px; }
+  .tk { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 0 8px; text-align: center; font-size: 15px; font-weight: 600; position: relative; }
+  .tk small { display: block; font-size: 8px; color: var(--sub); letter-spacing: 1px; font-weight: 400; margin-top: 2px; }
+  .tk::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; border-radius: 8px 8px 0 0; background: var(--c); }
+  .meta { display: flex; justify-content: center; gap: 18px; color: var(--sub); font-size: 13px; margin-bottom: 16px; }
+  .spacer { flex: 1; }
+
+  /* 答题 */
+  .top { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
+  .back { background: none; color: var(--sub); font-size: 22px; width: 32px; height: 32px; padding: 0; }
+  .back[hidden] { visibility: hidden; display: block; }
+  .bar { flex: 1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width .3s; }
+  .num { font-size: 13px; color: var(--sub); width: 42px; text-align: right; font-variant-numeric: tabular-nums; }
+  .qn { color: var(--accent); font-size: 13px; letter-spacing: 3px; margin-bottom: 10px; }
+  .qt { font-size: 24px; font-weight: 700; line-height: 1.45; margin: 0 0 28px; }
+  .opts { display: flex; flex-direction: column; gap: 12px; }
+  .opt { background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 17px 18px; text-align: left; font-size: 16px; color: var(--ink); display: flex; gap: 12px; align-items: center; transition: border-color .15s, background .15s; }
+  .opt b { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--line); display: grid; place-items: center; font-size: 13px; color: var(--sub); }
+  .opt.sel { border-color: var(--ink); background: #fff; }
+  .opt.sel b { background: var(--ink); border-color: var(--ink); color: #fff; }
+
+  /* 计算中 */
+  .loading { align-items: center; justify-content: center; text-align: center; color: var(--sub); }
+  .plane { font-size: 44px; animation: fly 1.2s ease-in-out infinite; }
+  @keyframes fly { 50% { transform: translate(14px, -10px) rotate(8deg); } }
+
+  /* 结果 */
+  .pc { background: var(--card); border-radius: 18px; overflow: hidden; box-shadow: 0 10px 30px rgba(80, 60, 40, .12); }
+  .pc-hd { background: var(--c); color: #fff; padding: 22px 22px 20px; position: relative; overflow: hidden; }
+  .pc-hd .lbl { font-size: 12px; letter-spacing: 3px; opacity: .85; }
+  .pc-hd h2 { font-size: 52px; margin: 6px 0 2px; letter-spacing: 6px; line-height: 1.1; }
+  .pc-hd .en { font-size: 13px; letter-spacing: 6px; opacity: .8; }
+  .pc-hd .match { position: absolute; right: 18px; top: 20px; width: 78px; height: 78px; border: 2px solid rgba(255,255,255,.75); border-radius: 50%; display: grid; place-items: center; text-align: center; transform: rotate(8deg); font-size: 11px; line-height: 1.2; }
+  .pc-hd .match strong { display: block; font-size: 24px; }
+  .pc-bd { padding: 20px 22px 22px; }
+  .tag { font-size: 19px; font-weight: 700; margin: 0 0 10px; }
+  .desc { color: #4d433b; line-height: 1.75; font-size: 15px; margin: 0 0 18px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+  .col h4 { margin: 0 0 6px; font-size: 13px; color: var(--sub); font-weight: 600; }
+  .col ul { margin: 0; padding-left: 16px; font-size: 13.5px; line-height: 1.7; }
+  .sec { font-size: 13px; color: var(--sub); font-weight: 600; margin: 4px 0 8px; }
+  .dims { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+  .dims span { font-size: 12.5px; padding: 4px 10px; border-radius: 999px; background: #f1e8da; }
+  .runner { display: flex; flex-direction: column; gap: 8px; }
+  .rr { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .rr .n { width: 52px; font-weight: 600; }
+  .rr .b { flex: 1; height: 8px; background: #efe6d8; border-radius: 4px; overflow: hidden; }
+  .rr .b i { display: block; height: 100%; border-radius: 4px; background: var(--c); }
+  .rr .p { width: 38px; text-align: right; color: var(--sub); font-variant-numeric: tabular-nums; }
+  .acts { display: grid; gap: 10px; margin-top: 20px; }
+  .note { text-align: center; font-size: 12px; color: var(--sub); margin-top: 14px; }
+
+  /* 海报 */
+  .mask { position: fixed; inset: 0; background: rgba(30, 24, 20, .82); display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px; z-index: 9; }
+  .mask.on { display: flex; }
+  .mask img { max-width: 100%; max-height: 74vh; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+  .mask p { color: #fff; font-size: 14px; margin: 14px 0 10px; }
+  .mask button { background: rgba(255,255,255,.15); color: #fff; border-radius: 999px; padding: 10px 28px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="screen cover on" id="s-cover">
+    <div class="stamp">CITY · TEST</div>
+    <h1>测测你适合<br>去<em>哪个城市</em>生活</h1>
+    <p>12 道生活小问题，从节奏、气候、口味到理想的家，帮你找到最合拍的那座城。</p>
+    <div class="tickets" id="tickets"></div>
+    <div class="spacer"></div>
+    <div class="meta"><span>⏱ 约 1 分钟</span><span>📮 12 座城市</span></div>
+    <button class="btn" id="start">开始测试</button>
+  </section>
+
+  <section class="screen" id="s-quiz">
+    <div class="top">
+      <button class="back" id="back" aria-label="上一题">‹</button>
+      <div class="bar"><i id="bar"></i></div>
+      <div class="num" id="num"></div>
+    </div>
+    <div class="qn" id="qn"></div>
+    <h2 class="qt" id="qt"></h2>
+    <div class="opts" id="opts"></div>
+  </section>
+
+  <section class="screen loading" id="s-load">
+    <div class="plane">✈️</div>
+    <p>正在为你匹配城市…</p>
+  </section>
+
+  <section class="screen" id="s-result">
+    <div class="pc" id="pc"></div>
+    <div class="acts">
+      <button class="btn" id="poster">生成分享海报</button>
+      <button class="btn ghost" id="again">再测一次</button>
+    </div>
+    <div class="note">结果仅供娱乐，城市描述基于大众印象</div>
+  </section>
+</div>
+
+<div class="mask" id="mask">
+  <img id="pimg" alt="分享海报">
+  <p>长按图片保存，分享给朋友</p>
+  <button id="close">关闭</button>
+</div>
+
+<script src="data.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const answers = [];
+let cur = 0, result = null;
+
+$('tickets').innerHTML = CITIES.map(c => `<div class="tk" style="--c:${c.color}">${c.name}<small>${c.en}</small></div>`).join('');
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  window.scrollTo(0, 0);
+}
+
+function renderQ() {
+  const Q = QUESTIONS[cur];
+  $('bar').style.width = (cur / QUESTIONS.length * 100) + '%';
+  $('num').textContent = `${cur + 1}/${QUESTIONS.length}`;
+  $('qn').textContent = `第 ${cur + 1} 题`;
+  $('qt').textContent = Q.q;
+  $('back').hidden = cur === 0;
+  $('opts').innerHTML = Q.o.map((o, i) =>
+    `<button class="opt${answers[cur] === i ? ' sel' : ''}" data-i="${i}"><b>${'ABCD'[i]}</b><span>${o[0]}</span></button>`).join('');
+  // 重新播放进场动画
+  const s = $('s-quiz'); s.style.animation = 'none'; s.offsetHeight; s.style.animation = '';
+}
+
+let busy = false;
+$('opts').addEventListener('click', e => {
+  const b = e.target.closest('.opt'); if (!b || busy) return;
+  busy = true;
+  answers[cur] = +b.dataset.i;
+  b.classList.add('sel');
+  setTimeout(() => {
+    busy = false;
+    if (cur < QUESTIONS.length - 1) { cur++; renderQ(); }
+    else finish();
+  }, 260);
+});
+$('back').onclick = () => { if (cur > 0) { cur--; renderQ(); } };
+$('start').onclick = () => { answers.length = 0; cur = 0; renderQ(); show('s-quiz'); };
+$('again').onclick = () => show('s-cover');
+
+function finish() {
+  $('bar').style.width = '100%';
+  show('s-load');
+  result = rank(answers);
+  setTimeout(() => { renderResult(); show('s-result'); }, 1300);
+}
+
+function topDims(u) {
+  return DIMS.map((k, d) => [k, u[d]]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 3).map(x => DIM_NAME[x[0]]);
+}
+
+function renderResult() {
+  const [best, ...rest] = result.list, c = best.city;
+  const dims = topDims(result.user);
+  $('pc').innerHTML = `
+    <div class="pc-hd" style="--c:${c.color}">
+      <div class="lbl">你最适合生活的城市</div>
+      <h2>${c.name}</h2><div class="en">${c.en}</div>
+      <div class="match">契合度<strong>${best.pct}%</strong></div>
+    </div>
+    <div class="pc-bd">
+      <p class="tag">「${c.tag}」</p>
+      <p class="desc">${c.desc}</p>
+      <div class="cols">
+        <div class="col"><h4>😍 你会爱上</h4><ul>${c.like.map(x => `<li>${x}</li>`).join('')}</ul></div>
+        <div class="col"><h4>😮‍💨 需要适应</h4><ul>${c.hard.map(x => `<li>${x}</li>`).join('')}</ul></div>
+      </div>
+      ${dims.length ? `<div class="sec">你最看重</div><div class="dims">${dims.map(d => `<span>${d}</span>`).join('')}</div>` : ''}
+      <div class="sec">其他也很合拍的城市</div>
+      <div class="runner">${rest.slice(0, 3).map(r => `
+        <div class="rr" style="--c:${r.city.color}"><span class="n">${r.city.name}</span><span class="b"><i style="width:${r.pct}%"></i></span><span class="p">${r.pct}%</span></div>`).join('')}
+      </div>
+    </div>`;
+}
+
+// 分享海报：canvas 画好转成图片，手机上长按保存
+const NO_HEAD = '，。、；：？！」』）》…%';   // 不能出现在行首的标点
+function wrapText(ctx, text, x, y, maxW, lh, draw) {
+  let line = '';
+  for (const ch of text) {
+    if (ctx.measureText(line + ch).width > maxW && !NO_HEAD.includes(ch)) { draw && ctx.fillText(line, x, y); line = ch; y += lh; }
+    else line += ch;
+  }
+  draw && ctx.fillText(line, x, y); return y + lh;
+}
+// 画两遍：第一遍只量高度，第二遍按实际高度出图
+function paintPoster(x, W, H, draw) {
+  const [best, ...rest] = result.list, c = best.city;
+  const F = 'PingFang SC, Noto Sans CJK SC, Microsoft YaHei, sans-serif';
+  const px = 50, py = 60, pw = W - 100, ph = H - 220;
+  if (draw) {
+    x.fillStyle = '#f4ecdf'; x.fillRect(0, 0, W, H);
+    x.fillStyle = '#e6dccb';
+    for (let i = 9; i < W; i += 27) for (let j = 9; j < H; j += 27) x.fillRect(i, j, 1.5, 1.5);
+    x.save(); x.shadowColor = 'rgba(80,60,40,.18)'; x.shadowBlur = 30; x.shadowOffsetY = 10;
+    x.fillStyle = '#fffaf2'; x.beginPath(); x.roundRect(px, py, pw, ph, 28); x.fill(); x.restore();
+    x.save(); x.beginPath(); x.roundRect(px, py, pw, ph, 28); x.clip();
+    x.fillStyle = c.color; x.fillRect(px, py, pw, 330); x.restore();
+    x.fillStyle = 'rgba(255,255,255,.85)'; x.font = `22px ${F}`; x.fillText('你最适合生活的城市', px + 40, py + 70);
+    x.fillStyle = '#fff'; x.font = `bold 108px ${F}`; x.fillText(c.name, px + 36, py + 200);
+    x.font = `24px ${F}`; x.fillStyle = 'rgba(255,255,255,.8)'; x.fillText(c.en.split('').join(' '), px + 42, py + 260);
+    const cx = px + pw - 110, cy = py + 120;   // 邮戳
+    x.save(); x.translate(cx, cy); x.rotate(.14);
+    x.strokeStyle = 'rgba(255,255,255,.8)'; x.lineWidth = 3; x.beginPath(); x.arc(0, 0, 70, 0, 7); x.stroke();
+    x.fillStyle = '#fff'; x.textAlign = 'center'; x.font = `20px ${F}`; x.fillText('契合度', 0, -14);
+    x.font = `bold 44px ${F}`; x.fillText(best.pct + '%', 0, 36); x.restore();
+  }
+  x.fillStyle = '#2b2420'; x.font = `bold 34px ${F}`;
+  let y = wrapText(x, `「${c.tag}」`, px + 40, py + 400, pw - 80, 48, draw);
+  x.fillStyle = '#4d433b'; x.font = `26px ${F}`;
+  y = wrapText(x, c.desc, px + 40, y + 14, pw - 80, 44, draw);
+  const half = (pw - 80) / 2;
+  [['你会爱上', c.like, 0], ['需要适应', c.hard, half + 10]].forEach(([t, list, dx]) => {
+    let yy = y + 30;
+    if (draw) { x.fillStyle = '#7a6d62'; x.font = `bold 24px ${F}`; x.fillText(t, px + 40 + dx, yy); }
+    x.fillStyle = '#2b2420'; x.font = `22px ${F}`; yy += 42;
+    list.forEach(s => { yy = wrapText(x, '· ' + s, px + 40 + dx, yy, half - 14, 34, draw); });
+    y2 = Math.max(y2 || 0, yy);
+  });
+  y = y2; y2 = 0;
+  if (draw) {
+    x.strokeStyle = '#e6dccb'; x.setLineDash([8, 8]); x.lineWidth = 2;
+    x.beginPath(); x.moveTo(px + 40, y); x.lineTo(px + pw - 40, y); x.stroke(); x.setLineDash([]);
+    x.fillStyle = '#7a6d62'; x.font = `22px ${F}`;
+    x.fillText('也很合拍：' + rest.slice(0, 3).map(r => `${r.city.name} ${r.pct}%`).join('　'), px + 40, y + 48);
+    x.textAlign = 'center'; x.fillStyle = '#2b2420'; x.font = `bold 30px ${F}`;
+    x.fillText('测测你适合去哪个城市生活', W / 2, H - 92);
+    x.fillStyle = '#7a6d62'; x.font = `22px ${F}`; x.fillText(location.host + location.pathname, W / 2, H - 50);
+  }
+  return y + 80;   // 卡片内容底部
+}
+let y2 = 0;
+$('poster').onclick = () => {
+  const W = 750, cv = document.createElement('canvas'), x = cv.getContext('2d');
+  const bottom = paintPoster(x, W, 0, false);
+  cv.width = W; cv.height = bottom + 160;
+  paintPoster(cv.getContext('2d'), W, cv.height, true);
+  $('pimg').src = cv.toDataURL('image/jpeg', .92);
+  $('mask').classList.add('on');
+};
+$('close').onclick = () => $('mask').classList.remove('on');
+</script>
+</body>
+</html>
